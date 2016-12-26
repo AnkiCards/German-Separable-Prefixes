@@ -1,37 +1,81 @@
 
-
 const fs = require('fs')
+    , request = require('request')
     , Converter = require("csvtojson").Converter
-    , converter = new Converter({});
+    , converter = new Converter({})
 
 interface Recipe {
     followRecipe: (input: Object) => Promise<string>,
 }
 
+interface Line {
+    prefix: string,
+    translation: string,
+    word: string
+}
+
 class AnkiInfo implements Recipe {
 
     mediaFolder: string
+    csv: string
 
-    constructor(mediaFolder :string){
+    constructor(mediaFolder: string) {
         this.mediaFolder = mediaFolder
+        this.csv = ''
     }
 
-    stringify(input: Object) {
-        return JSON.stringify(input, null, 4)
+    normalizeWord(word: string): string {
+        return word.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     }
 
-    followRecipe(input: Object) {
-        const {stringify} = this
+    getUrl(word): string {
+        return `http://bing-translate-tts-demo.craic.com/text_to_speech_web_audio_api?query=%22${encodeURIComponent(word)}%22&language=de`
+        
+    }
 
-        const recipe = (resolve, reject) => {
-            resolve(stringify(input))
-        }
+    downloadAudio(word: string): Promise<string> {
+        const url = this.getUrl(word)
+            , soundPath = `${this.normalizeWord(word)}.mp3`
+            , pathToSave = this.mediaFolder + '/' + soundPath
 
-        return new Promise(recipe)
+        return new Promise((resolve, reject) => {
+            const stream = request(url).pipe(fs.createWriteStream(pathToSave))
+            stream.on('finish', ()=>resolve(soundPath))
+            stream.on('error', (error)=>reject(error))       
+        })
+    }
 
+    processLine(line: Line): Promise<string> {
+        const {prefix, translation, word} = line
+
+        return this.downloadAudio(word).then(soundPath => {
+            return `"${prefix}", "${word}", "${translation}", [sound:${soundPath}]`
+        }).catch(error => console.log(error))
+    }
+
+    processAllLines(lines: Array<Line>): Array<Promise<string>> {
+        return lines.map(line => {
+            return this.processLine(line)
+        }, this)
+    }
+
+    getNewCvs(oldCsvLines: Array<Line>): Promise<string> {
+        const asyncTasks = this.processAllLines(oldCsvLines)
+        return Promise.all(asyncTasks).then(lines => {
+            return lines.join('\r\n')
+        })
+    }
+
+    followRecipe(csvLines: Array<Line>) {
+        return this.getNewCvs(csvLines)
     }
 
 }
+
+class CvsTransformer {
+
+}
+
 
 class CvsProcessor {
 
@@ -64,6 +108,7 @@ class CvsProcessor {
     }
 
     private saveContent(content: string) {
+        console.log(content)
         const {pathToSave} = this
         fs.writeFile(pathToSave, content)
     }
@@ -82,8 +127,8 @@ class CvsProcessor {
 
 
 var fileToOpen = './german-separable-prefixes.csv'
-var pathToSave = 'lero.txt'
-var recipe = new AnkiInfo('./media')
+var pathToSave = './lero.csv'
+var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media')
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
 
 processor.startTranformation()
