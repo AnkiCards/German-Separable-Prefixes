@@ -1,15 +1,15 @@
 var fs = require('fs'), Converter = require("csvtojson").Converter, converter = new Converter({});
 var AnkiInfo = (function () {
-    function AnkiInfo() {
+    function AnkiInfo(mediaFolder) {
+        this.mediaFolder = mediaFolder;
     }
     AnkiInfo.prototype.stringify = function (input) {
         return JSON.stringify(input, null, 4);
     };
     AnkiInfo.prototype.followRecipe = function (input) {
-        console.log(this);
-        var string = this.stringify(input);
+        var stringify = this.stringify;
         var recipe = function (resolve, reject) {
-            resolve(string);
+            resolve(stringify(input));
         };
         return new Promise(recipe);
     };
@@ -48,8 +48,8 @@ var CvsProcessor = (function () {
     };
     return CvsProcessor;
 }());
-var fileToOpen = './aqui.csv';
+var fileToOpen = './german-separable-prefixes.csv';
 var pathToSave = 'lero.txt';
-var recipe = new AnkiInfo();
+var recipe = new AnkiInfo('./media');
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe);
 processor.startTranformation();

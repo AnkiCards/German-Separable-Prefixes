@@ -1,6 +1,252 @@
 [
     {
-        "oi": "vixe",
-        "lero": "maria"
+        "prefix": "ab—off, down",
+        "word": "abholen",
+        "translation": "to pick up, to fetch"
+    },
+    {
+        "prefix": "ab—off, down",
+        "word": "abnehmen",
+        "translation": "to take off, to lose weight"
+    },
+    {
+        "prefix": "an—at, on",
+        "word": "ankommen",
+        "translation": "to arrive"
+    },
+    {
+        "prefix": "an—at, on",
+        "word": "anrufen",
+        "translation": "to call up (on the telephone)"
+    },
+    {
+        "prefix": "an—at, on",
+        "word": "ansehen",
+        "translation": "to look at"
+    },
+    {
+        "prefix": "an—at, on",
+        "word": "anziehen",
+        "translation": "to put on, to dress"
+    },
+    {
+        "prefix": "auf—up",
+        "word": "aufhören",
+        "translation": "to stop"
+    },
+    {
+        "prefix": "auf—up",
+        "word": "aufpassen",
+        "translation": "to pay attention"
+    },
+    {
+        "prefix": "auf—up",
+        "word": "aufstehen",
+        "translation": "to get up"
+    },
+    {
+        "prefix": "aus—out",
+        "word": "ausgehen",
+        "translation": "to go out"
+    },
+    {
+        "prefix": "aus—out",
+        "word": "aussteigen",
+        "translation": "to climb out, to get out"
+    },
+    {
+        "prefix": "ein—into",
+        "word": "einkaufen",
+        "translation": "to buy, to shop"
+    },
+    {
+        "prefix": "ein—into",
+        "word": "eintreten",
+        "translation": "to enter"
+    },
+    {
+        "prefix": "entgegen—toward",
+        "word": "entgegengehen",
+        "translation": "to go to meet"
+    },
+    {
+        "prefix": "fort—away",
+        "word": "fortgehen",
+        "translation": "to go away"
+    },
+    {
+        "prefix": "heim—home",
+        "word": "heimgehen",
+        "translation": "to go home"
+    },
+    {
+        "prefix": "heim—home",
+        "word": "heimkommen",
+        "translation": "to come home"
+    },
+    {
+        "prefix": "her—hither",
+        "word": "herkommen",
+        "translation": "to come here"
+    },
+    {
+        "prefix": "her—hither",
+        "word": "herstellen",
+        "translation": "to produce"
+    },
+    {
+        "prefix": "heraus—out (toward)",
+        "word": "herausbringen",
+        "translation": "to bring out"
+    },
+    {
+        "prefix": "heraus—out (toward)",
+        "word": "herausreißen",
+        "translation": "to tear out"
+    },
+    {
+        "prefix": "herein—in",
+        "word": "hereinkommen",
+        "translation": "to come in"
+    },
+    {
+        "prefix": "hin—thither",
+        "word": "hingehen",
+        "translation": "to go there (away from the speaker)"
+    },
+    {
+        "prefix": "hin—thither",
+        "word": "hinfallen",
+        "translation": "to fall down"
+    },
+    {
+        "prefix": "hinaus—out (away)",
+        "word": "hinausgehen",
+        "translation": "to go out"
+    },
+    {
+        "prefix": "hinaus—out (away)",
+        "word": "hinauswerfen",
+        "translation": "to throw out"
+    },
+    {
+        "prefix": "hinein—into",
+        "word": "hineinfallen",
+        "translation": "to fall into"
+    },
+    {
+        "prefix": "mit—with, along",
+        "word": "mitbringen",
+        "translation": "to bring along"
+    },
+    {
+        "prefix": "mit—with, along",
+        "word": "mitkommen",
+        "translation": "to come along"
+    },
+    {
+        "prefix": "mit—with, along",
+        "word": "mitnehmen",
+        "translation": "to take along"
+    },
+    {
+        "prefix": "nach—after",
+        "word": "nachdenken",
+        "translation": "to reflect"
+    },
+    {
+        "prefix": "nach—after",
+        "word": "nachfragen",
+        "translation": "to inquire"
+    },
+    {
+        "prefix": "nach—after",
+        "word": "nachlaufen",
+        "translation": "to run after"
+    },
+    {
+        "prefix": "nieder—down",
+        "word": "niederbrennen",
+        "translation": "to burn down"
+    },
+    {
+        "prefix": "um—around",
+        "word": "umpflanzen",
+        "translation": "to transplant"
+    },
+    {
+        "prefix": "um—around",
+        "word": "umsehen",
+        "translation": "to look around"
+    },
+    {
+        "prefix": "um—around",
+        "word": "umsteigen",
+        "translation": "to change (buses, etc.)"
+    },
+    {
+        "prefix": "um—around",
+        "word": "umziehen",
+        "translation": "to move (to change residence, clothes)"
+    },
+    {
+        "prefix": "unter—under",
+        "word": "untergehen",
+        "translation": "to sink, to perish"
+    },
+    {
+        "prefix": "vor—before",
+        "word": "vorbereiten",
+        "translation": "to prepare"
+    },
+    {
+        "prefix": "vor—before",
+        "word": "vorgehen",
+        "translation": "to precede, to be fast (clock)"
+    },
+    {
+        "prefix": "vor—before",
+        "word": "vorhaben",
+        "translation": "to be going (planning) to do"
+    },
+    {
+        "prefix": "weg—away",
+        "word": "weggehen",
+        "translation": "to go away"
+    },
+    {
+        "prefix": "zu—to",
+        "word": "zuhören",
+        "translation": "to listen to"
+    },
+    {
+        "prefix": "zu—to",
+        "word": "zumachen",
+        "translation": "to close"
+    },
+    {
+        "prefix": "zurück—back",
+        "word": "zurückfahren",
+        "translation": "to go back (by vehicle)"
+    },
+    {
+        "prefix": "zurück—back",
+        "word": "zurückgeben",
+        "translation": "to give back"
+    },
+    {
+        "prefix": "zurück—back",
+        "word": "zurückkehren",
+        "translation": "to turn (or come) back, return"
+    },
+    {
+        "prefix": "zusammen—together",
+        "word": "zusammenbringen",
+        "translation": "to bring together"
+    },
+    {
+        "prefix": "zusammen—together",
+        "word": "zusammenkommen",
+        "translation": "to come together, get together"
     }
 ]

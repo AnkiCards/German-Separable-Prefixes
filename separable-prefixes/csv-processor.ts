@@ -4,14 +4,6 @@ const fs = require('fs')
     , Converter = require("csvtojson").Converter
     , converter = new Converter({});
 
-var fileToOpen = './aqui.csv'
-var pathToSave = 'lero.txt'
-var recipe = new AnkiInfo('./media')
-var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
-
-processor.startTranformation()
-
-
 interface Recipe {
     followRecipe: (input: Object) => Promise<string>,
 }
@@ -87,6 +79,14 @@ class CvsProcessor {
     }
 
 }
+
+
+var fileToOpen = './german-separable-prefixes.csv'
+var pathToSave = 'lero.txt'
+var recipe = new AnkiInfo('./media')
+var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
+
+processor.startTranformation()
 
 
 
