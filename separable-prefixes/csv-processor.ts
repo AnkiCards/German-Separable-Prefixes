@@ -17,11 +17,9 @@ interface Line {
 class AnkiInfo implements Recipe {
 
     mediaFolder: string
-    csv: string
 
     constructor(mediaFolder: string) {
         this.mediaFolder = mediaFolder
-        this.csv = ''
     }
 
     normalizeWord(word: string): string {
@@ -108,7 +106,6 @@ class CvsProcessor {
     }
 
     private saveContent(content: string) {
-        console.log(content)
         const {pathToSave} = this
         fs.writeFile(pathToSave, content)
     }
