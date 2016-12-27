@@ -1,10 +1,10 @@
 const request = require('request')
     , fs = require('fs')
 
-class Downloader {
+ class ImageDownloader {
 
-    constructor() {
-        this.mediaFolder = './media'
+    constructor(mediaFolder) {
+        this.mediaFolder = mediaFolder
     }
 
     requestOptions(word) {
@@ -38,33 +38,39 @@ class Downloader {
 
     processImagesInfo(info) {
         return JSON.parse(info).value.map(imageInfo => {
-            const {thumbnailUrl: url, name, encodingFormat:format} = imageInfo
+            const {thumbnailUrl: url, name, encodingFormat: format} = imageInfo
             return { url, name: name, format }
         })
     }
 
-    formatPathName(name){
-        return name.replace(/(s|\|)/g, '_').toLowerCase()
+    removeIllegalCharacters(name) {
+        return name.replace(/([^a-zA-Z0-9.-]|\.)/g, "_").toLowerCase()
     }
 
     download(resource) {
         const {url, name, format} = resource
-            , {formatPathName, mediaFolder} = this
-            , pathToSave = `${mediaFolder}/${formatPathName(name)}.${format}`
+            , {removeIllegalCharacters, mediaFolder} = this
+            , pathToSave = `${mediaFolder}/${removeIllegalCharacters(name)}`
 
-        request(url).pipe(fs.createWriteStream(pathToSave))
+        return new Promise((resolve, reject) => {
+            request(url)
+                .pipe(fs.createWriteStream(pathToSave))
+                .on('finish', () => resolve(pathToSave))
+                .on('error', error=>reject(error))
+        })
     }
 
     downloadImages(images) {
-        const download = this.download.bind(this)        
-        images.forEach(image => download(image))
+        const download = this.download.bind(this)
+            , imagesDownload = images.map(image => download(image))
+
+        return Promise.all(imagesDownload)
     }
 
-    getImage(word) {
+    getImages(word) {
         const downloadImages = this.downloadImages.bind(this)
         return this.searchImage(word).then(downloadImages)
     }
 }
 
-const downloader = new Downloader()
-downloader.getImage('sex')
+module.exports = ImageDownloader

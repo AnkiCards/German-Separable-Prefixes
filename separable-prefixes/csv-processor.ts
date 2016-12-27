@@ -3,6 +3,7 @@ const fs = require('fs')
     , request = require('request')
     , Converter = require("csvtojson").Converter
     , converter = new Converter({})
+    , ImageDownloader = require('./image-downloader.js')
 
 interface Recipe {
     followRecipe: (input: Object) => Promise<string>,
@@ -17,9 +18,11 @@ interface Line {
 class AnkiInfo implements Recipe {
 
     mediaFolder: string
+    imageDownloader: ImageDownloader
 
     constructor(mediaFolder: string) {
         this.mediaFolder = mediaFolder
+        this.imageDownloader = new ImageDownloader(mediaFolder)
     }
 
     normalizeWord(word: string): string {
@@ -28,7 +31,7 @@ class AnkiInfo implements Recipe {
 
     getUrl(word): string {
         return `http://bing-translate-tts-demo.craic.com/text_to_speech_web_audio_api?query=%22${encodeURIComponent(word)}%22&language=de`
-        
+
     }
 
     downloadAudio(word: string): Promise<string> {
@@ -38,17 +41,47 @@ class AnkiInfo implements Recipe {
 
         return new Promise((resolve, reject) => {
             const stream = request(url).pipe(fs.createWriteStream(pathToSave))
-            stream.on('finish', ()=>resolve(soundPath))
-            stream.on('error', (error)=>reject(error))       
+            stream.on('finish', () => resolve(soundPath))
+            stream.on('error', (error) => reject(error))
         })
     }
 
-    processLine(line: Line): Promise<string> {
-        const {prefix, translation, word} = line
+    formatAudioString(soundPath: string): string {
+        return `[sound:${soundPath}]`
+    }
 
-        return this.downloadAudio(word).then(soundPath => {
-            return `"${prefix}", "${word}", "${translation}", [sound:${soundPath}]`
+    wrapImageTag(source: string): string {
+        return `<img src=${source} />`
+    }
+
+    formatImagesString(imagesPath: Array<string>): string {
+        const {wrapImageTag} = this
+
+        return imagesPath.reduce((previous, current) => {
+            previous = (previous || wrapImageTag(previous))             
+            return previous + wrapImageTag(current)
+        }, '')
+
+    }
+
+    getLineString(line: Line, soundPath: string, imagesPath: Array<string>): string {
+        const {prefix, translation, word} = line
+            , formatAudioString = this.formatAudioString.bind(this)
+            , formatImagesString = this.formatImagesString.bind(this)
+
+        return `"${prefix}", "${word}", "${translation}", ${formatAudioString(soundPath)} ${formatImagesString(imagesPath)}`
+    }
+
+    processLine(line: Line): Promise<string> {
+
+        const getLineString = this.getLineString.bind(this)
+            , {word} = line
+            , tasks = [this.downloadAudio(word), this.imageDownloader.getImages(word)]
+
+        return Promise.all(tasks).then(([soundPath, imagesPath]) => {
+            return getLineString(line, soundPath, imagesPath)
         }).catch(error => console.log(error))
+
     }
 
     processAllLines(lines: Array<Line>): Array<Promise<string>> {
@@ -123,10 +156,16 @@ class CvsProcessor {
 }
 
 
-var fileToOpen = './german-separable-prefixes.csv'
-var pathToSave = './lero.csv'
-var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media')
+var fileToOpen = './test.csv'
+var pathToSave = './iota.csv'
+var recipe = new AnkiInfo('./media')
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
+
+
+// var fileToOpen = './german-separable-prefixes.csv'
+// var pathToSave = './lero.csv'
+// var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media')
+// var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
 
 processor.startTranformation()
 

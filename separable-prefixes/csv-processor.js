@@ -1,8 +1,8 @@
-var fs = require('fs'), request = require('request'), Converter = require("csvtojson").Converter, converter = new Converter({});
+var fs = require('fs'), request = require('request'), Converter = require("csvtojson").Converter, converter = new Converter({}), ImageDownloader = require('./image-downloader.js');
 var AnkiInfo = (function () {
     function AnkiInfo(mediaFolder) {
         this.mediaFolder = mediaFolder;
-        this.csv = '';
+        this.imageDownloader = new ImageDownloader(mediaFolder);
     }
     AnkiInfo.prototype.normalizeWord = function (word) {
         return word.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
@@ -18,10 +18,28 @@ var AnkiInfo = (function () {
             stream.on('error', function (error) { return reject(error); });
         });
     };
+    AnkiInfo.prototype.formatAudioString = function (soundPath) {
+        return "[sound:" + soundPath + "]";
+    };
+    AnkiInfo.prototype.wrapImageTag = function (source) {
+        return "<img src=" + source + " />";
+    };
+    AnkiInfo.prototype.formatImagesString = function (imagesPath) {
+        var wrapImageTag = this.wrapImageTag;
+        return imagesPath.reduce(function (previous, current) {
+            previous = (previous || wrapImageTag(previous));
+            return previous + wrapImageTag(current);
+        }, '');
+    };
+    AnkiInfo.prototype.getLineString = function (line, soundPath, imagesPath) {
+        var prefix = line.prefix, translation = line.translation, word = line.word, formatAudioString = this.formatAudioString.bind(this), formatImagesString = this.formatImagesString.bind(this);
+        return "\"" + prefix + "\", \"" + word + "\", \"" + translation + "\", " + formatAudioString(soundPath) + " " + formatImagesString(imagesPath);
+    };
     AnkiInfo.prototype.processLine = function (line) {
-        var prefix = line.prefix, translation = line.translation, word = line.word;
-        return this.downloadAudio(word).then(function (soundPath) {
-            return "\"" + prefix + "\", \"" + word + "\", \"" + translation + "\", [sound:" + soundPath + "]";
+        var getLineString = this.getLineString.bind(this), word = line.word, tasks = [this.downloadAudio(word), this.imageDownloader.getImages(word)];
+        return Promise.all(tasks).then(function (_a) {
+            var soundPath = _a[0], imagesPath = _a[1];
+            return getLineString(line, soundPath, imagesPath);
         })["catch"](function (error) { return console.log(error); });
     };
     AnkiInfo.prototype.processAllLines = function (lines) {
@@ -68,7 +86,6 @@ var CvsProcessor = (function () {
         return new Promise(task);
     };
     CvsProcessor.prototype.saveContent = function (content) {
-        console.log(content);
         var pathToSave = this.pathToSave;
         fs.writeFile(pathToSave, content);
     };
@@ -80,8 +97,12 @@ var CvsProcessor = (function () {
     };
     return CvsProcessor;
 }());
-var fileToOpen = './german-separable-prefixes.csv';
-var pathToSave = './lero.csv';
-var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media');
+var fileToOpen = './test.csv';
+var pathToSave = './iota.csv';
+var recipe = new AnkiInfo('./media');
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe);
+// var fileToOpen = './german-separable-prefixes.csv'
+// var pathToSave = './lero.csv'
+// var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media')
+// var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
 processor.startTranformation();
