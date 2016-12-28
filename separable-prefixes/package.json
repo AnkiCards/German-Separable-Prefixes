@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ssl-root-cas": "^1.2.3",
     "ts-promise": "^0.3.4"
   },
   "devDependencies": {

@@ -1,3 +1,14 @@
+'use strict';
+
+var rootCas = require('ssl-root-cas/latest').create();
+
+rootCas
+    .addFile(__dirname + '/lets-encrypt-x3-cross-signed.pem')
+    ;
+
+// will work with all https requests will all libraries (i.e. request.js) 
+require('https').globalAgent.options.ca = rootCas;
+
 
 const fs = require('fs')
     , request = require('request')
@@ -40,7 +51,7 @@ class AnkiInfo implements Recipe {
             , pathToSave = this.mediaFolder + '/' + soundPath
 
         return new Promise((resolve, reject) => {
-            const stream = request(url).pipe(fs.createWriteStream(pathToSave))
+            const stream = request({ url, rejectUnauthorized: false }).pipe(fs.createWriteStream(pathToSave))
             stream.on('finish', () => resolve(soundPath))
             stream.on('error', (error) => reject(error))
         })

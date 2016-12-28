@@ -1,3 +1,4 @@
+
 const request = require('request')
     , fs = require('fs')
 
@@ -14,9 +15,10 @@ class ImageDownloader {
                 q: encodeURIComponent(word),
                 cx: '012944261312582723912:gsym5e1q-v8',
                 searchType: 'image',
-                key: 'AIzaSyCicqM_kUWs00ph_6gFXoQTzrEqdDCb-p8',
+                key: 'AIzaSyBpLwnQ3x9cmNlX0BoD1mb7a8EBFWTNEVc',
                 safe: "off",
-            }
+            },
+            rejectUnauthorized: false
         }
     }
 
@@ -59,20 +61,22 @@ class ImageDownloader {
             , pathToSave = `${mediaFolder}/${fileName}`
 
         return new Promise((resolve, reject) => {
-            if (url)
-                request({url, rejectUnauthorized: false})
+            if (url){
+                var stream = request({ url, rejectUnauthorized: false })
                     .pipe(fs.createWriteStream(pathToSave))
-                    .on('finish', () => resolve(fileName))
-                    .on('error', error => reject(error))
+
+                stream.on('finish', () => resolve(fileName))
+                stream.on('error', (error) => {
+                    console.log(error, url); reject(error)
+                    if (err.message.code === 'ETIMEDOUT') { reject(error) }
+                })
+            }
+
         })
     }
 
     downloadImages(images) {
         const download = this.download.bind(this)
-
-        console.log(images.length)
-        
-        
         const imagesDownload = images.length ? images.map(image => download(image)) : []
 
 
