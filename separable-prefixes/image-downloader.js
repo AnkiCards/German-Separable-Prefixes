@@ -1,46 +1,51 @@
 const request = require('request')
     , fs = require('fs')
 
- class ImageDownloader {
+class ImageDownloader {
 
     constructor(mediaFolder) {
         this.mediaFolder = mediaFolder
     }
 
     requestOptions(word) {
-        const bingKey = '90a9877c58c44c2ba04cf6094fbee3ea'
         return {
-            url: 'https://api.cognitive.microsoft.com/bing/v5.0/images/search',
+            url: 'https://www.googleapis.com/customsearch/v1',
             qs: {
                 q: encodeURIComponent(word),
-                safeSearch: 'Off',
-                mkt: 'de-DE',
-                count: 10
-            },
-            headers: {
-                'Ocp-Apim-Subscription-Key': bingKey
+                cx: '012944261312582723912:gsym5e1q-v8',
+                searchType: 'image',
+                key: 'AIzaSyCicqM_kUWs00ph_6gFXoQTzrEqdDCb-p8',
+                safe: "off",
             }
         }
     }
 
 
     searchImage(word) {
-        const {processImagesInfo, requestOptions} = this
-            , options = requestOptions(word)
+        const {processImagesInfo, requestOptions, currentApiKey} = this
+            , options = requestOptions.call(this, word)
 
         return new Promise((resolve, reject) => {
             request(options, function (error, response, body) {
-                if (!error && response.statusCode == 200) resolve(processImagesInfo(body))
-                reject('problems during the request of image')
+                if (!error && response.statusCode == 200) {
+                    resolve(processImagesInfo(body))
+                }
+                reject({ error, response: response.statusMessage })
             })
         })
     }
 
     processImagesInfo(info) {
-        return JSON.parse(info).value.map(imageInfo => {
-            const {thumbnailUrl: url, name, encodingFormat: format} = imageInfo
-            return { url, name: name, format }
-        })
+        const {items} = JSON.parse(info)
+
+        if (items) {
+            return items.map(imageInfo => {
+                const {link: url, title} = imageInfo
+                return { url, name: title }
+            })
+        }
+
+        return []
     }
 
     removeIllegalCharacters(name) {
@@ -48,21 +53,29 @@ const request = require('request')
     }
 
     download(resource) {
-        const {url, name, format} = resource
+        const {url, name} = resource
             , {removeIllegalCharacters, mediaFolder} = this
-            , pathToSave = `${mediaFolder}/${removeIllegalCharacters(name)}`
+            , fileName = removeIllegalCharacters(name)
+            , pathToSave = `${mediaFolder}/${fileName}`
 
         return new Promise((resolve, reject) => {
-            request(url)
-                .pipe(fs.createWriteStream(pathToSave))
-                .on('finish', () => resolve(pathToSave))
-                .on('error', error=>reject(error))
+            if (url)
+                request({url, rejectUnauthorized: false})
+                    .pipe(fs.createWriteStream(pathToSave))
+                    .on('finish', () => resolve(fileName))
+                    .on('error', error => reject(error))
         })
     }
 
     downloadImages(images) {
         const download = this.download.bind(this)
-            , imagesDownload = images.map(image => download(image))
+
+        console.log(images.length)
+        
+        
+        const imagesDownload = images.length ? images.map(image => download(image)) : []
+
+
 
         return Promise.all(imagesDownload)
     }
@@ -74,3 +87,4 @@ const request = require('request')
 }
 
 module.exports = ImageDownloader
+

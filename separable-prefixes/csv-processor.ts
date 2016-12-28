@@ -51,14 +51,13 @@ class AnkiInfo implements Recipe {
     }
 
     wrapImageTag(source: string): string {
-        return `<img src=${source} />`
+        return `<img src="${source}" />`
     }
 
     formatImagesString(imagesPath: Array<string>): string {
         const {wrapImageTag} = this
 
-        return imagesPath.reduce((previous, current) => {
-            previous = (previous || wrapImageTag(previous))             
+        return imagesPath.reduce((previous, current) => {             
             return previous + wrapImageTag(current)
         }, '')
 
@@ -69,7 +68,7 @@ class AnkiInfo implements Recipe {
             , formatAudioString = this.formatAudioString.bind(this)
             , formatImagesString = this.formatImagesString.bind(this)
 
-        return `"${prefix}", "${word}", "${translation}", ${formatAudioString(soundPath)} ${formatImagesString(imagesPath)}`
+        return `"${prefix}", "${word}", "${translation}", ${formatAudioString(soundPath)}, ${formatImagesString(imagesPath)}`
     }
 
     processLine(line: Line): Promise<string> {
@@ -80,7 +79,7 @@ class AnkiInfo implements Recipe {
 
         return Promise.all(tasks).then(([soundPath, imagesPath]) => {
             return getLineString(line, soundPath, imagesPath)
-        }).catch(error => console.log(error))
+        }).catch(error => {console.log({error, word})}) 
 
     }
 
@@ -156,9 +155,9 @@ class CvsProcessor {
 }
 
 
-var fileToOpen = './test.csv'
-var pathToSave = './iota.csv'
-var recipe = new AnkiInfo('./media')
+var fileToOpen = './german-separable-prefixes.csv'
+var pathToSave = './prefixes.csv'
+var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media')
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
 
 

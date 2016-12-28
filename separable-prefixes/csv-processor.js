@@ -22,25 +22,24 @@ var AnkiInfo = (function () {
         return "[sound:" + soundPath + "]";
     };
     AnkiInfo.prototype.wrapImageTag = function (source) {
-        return "<img src=" + source + " />";
+        return "<img src=\"" + source + "\" />";
     };
     AnkiInfo.prototype.formatImagesString = function (imagesPath) {
         var wrapImageTag = this.wrapImageTag;
         return imagesPath.reduce(function (previous, current) {
-            previous = (previous || wrapImageTag(previous));
             return previous + wrapImageTag(current);
         }, '');
     };
     AnkiInfo.prototype.getLineString = function (line, soundPath, imagesPath) {
         var prefix = line.prefix, translation = line.translation, word = line.word, formatAudioString = this.formatAudioString.bind(this), formatImagesString = this.formatImagesString.bind(this);
-        return "\"" + prefix + "\", \"" + word + "\", \"" + translation + "\", " + formatAudioString(soundPath) + " " + formatImagesString(imagesPath);
+        return "\"" + prefix + "\", \"" + word + "\", \"" + translation + "\", " + formatAudioString(soundPath) + ", " + formatImagesString(imagesPath);
     };
     AnkiInfo.prototype.processLine = function (line) {
         var getLineString = this.getLineString.bind(this), word = line.word, tasks = [this.downloadAudio(word), this.imageDownloader.getImages(word)];
         return Promise.all(tasks).then(function (_a) {
             var soundPath = _a[0], imagesPath = _a[1];
             return getLineString(line, soundPath, imagesPath);
-        })["catch"](function (error) { return console.log(error); });
+        })["catch"](function (error) { console.log({ error: error, word: word }); });
     };
     AnkiInfo.prototype.processAllLines = function (lines) {
         var _this = this;
@@ -97,9 +96,9 @@ var CvsProcessor = (function () {
     };
     return CvsProcessor;
 }());
-var fileToOpen = './test.csv';
-var pathToSave = './iota.csv';
-var recipe = new AnkiInfo('./media');
+var fileToOpen = './german-separable-prefixes.csv';
+var pathToSave = './prefixes.csv';
+var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media');
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe);
 // var fileToOpen = './german-separable-prefixes.csv'
 // var pathToSave = './lero.csv'
