@@ -61,15 +61,12 @@ class ImageDownloader {
             , pathToSave = `${mediaFolder}/${fileName}`
 
         return new Promise((resolve, reject) => {
-            if (url){
-                var stream = request({ url, rejectUnauthorized: false })
-                    .pipe(fs.createWriteStream(pathToSave))
+            if (url) {
+                const httpRequest = request({ url, rejectUnauthorized: false })
+                httpRequest.on('error', error => reject(error))
 
+                const stream = httpRequest.pipe(fs.createWriteStream(pathToSave))
                 stream.on('finish', () => resolve(fileName))
-                stream.on('error', (error) => {
-                    console.log(error, url); reject(error)
-                    if (err.message.code === 'ETIMEDOUT') { reject(error) }
-                })
             }
 
         })

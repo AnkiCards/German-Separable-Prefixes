@@ -1,3 +1,9 @@
+'use strict';
+var rootCas = require('ssl-root-cas/latest').create();
+rootCas
+    .addFile(__dirname + '/lets-encrypt-x3-cross-signed.pem');
+// will work with all https requests will all libraries (i.e. request.js) 
+require('https').globalAgent.options.ca = rootCas;
 var fs = require('fs'), request = require('request'), Converter = require("csvtojson").Converter, converter = new Converter({}), ImageDownloader = require('./image-downloader.js');
 var AnkiInfo = (function () {
     function AnkiInfo(mediaFolder) {
@@ -13,7 +19,7 @@ var AnkiInfo = (function () {
     AnkiInfo.prototype.downloadAudio = function (word) {
         var url = this.getUrl(word), soundPath = this.normalizeWord(word) + ".mp3", pathToSave = this.mediaFolder + '/' + soundPath;
         return new Promise(function (resolve, reject) {
-            var stream = request(url).pipe(fs.createWriteStream(pathToSave));
+            var stream = request({ url: url, rejectUnauthorized: false }).pipe(fs.createWriteStream(pathToSave));
             stream.on('finish', function () { return resolve(soundPath); });
             stream.on('error', function (error) { return reject(error); });
         });
@@ -31,8 +37,8 @@ var AnkiInfo = (function () {
         }, '');
     };
     AnkiInfo.prototype.getLineString = function (line, soundPath, imagesPath) {
-        var prefix = line.prefix, translation = line.translation, word = line.word, formatAudioString = this.formatAudioString.bind(this), formatImagesString = this.formatImagesString.bind(this);
-        return "\"" + prefix + "\", \"" + word + "\", \"" + translation + "\", " + formatAudioString(soundPath) + ", " + formatImagesString(imagesPath);
+        var example = line.example, word = line.word, formatAudioString = this.formatAudioString.bind(this), formatImagesString = this.formatImagesString.bind(this);
+        return "\"" + word + "\", \"" + example + "\", " + formatAudioString(soundPath) + ", " + formatImagesString(imagesPath) + "\r\n";
     };
     AnkiInfo.prototype.processLine = function (line) {
         var getLineString = this.getLineString.bind(this), word = line.word, tasks = [this.downloadAudio(word), this.imageDownloader.getImages(word)];
@@ -41,17 +47,18 @@ var AnkiInfo = (function () {
             return getLineString(line, soundPath, imagesPath);
         })["catch"](function (error) { console.log({ error: error, word: word }); });
     };
+    AnkiInfo.prototype.writeNewLine = function (line) {
+        fs.appendFile('./message.csv', line);
+    };
     AnkiInfo.prototype.processAllLines = function (lines) {
         var _this = this;
-        return lines.map(function (line) {
-            return _this.processLine(line);
+        var writeNewLine = this.writeNewLine;
+        return lines.forEach(function (line) {
+            _this.processLine(line).then(writeNewLine);
         }, this);
     };
     AnkiInfo.prototype.getNewCvs = function (oldCsvLines) {
-        var asyncTasks = this.processAllLines(oldCsvLines);
-        return Promise.all(asyncTasks).then(function (lines) {
-            return lines.join('\r\n');
-        });
+        this.processAllLines(oldCsvLines);
     };
     AnkiInfo.prototype.followRecipe = function (csvLines) {
         return this.getNewCvs(csvLines);
@@ -91,12 +98,11 @@ var CvsProcessor = (function () {
     CvsProcessor.prototype.startTranformation = function () {
         var _a = this, recipe = _a.recipe, saveContent = _a.saveContent, printError = _a.printError;
         this.openFile()
-            .then(recipe.followRecipe.bind(recipe))
-            .then(saveContent.bind(this))["catch"](printError);
+            .then(recipe.followRecipe.bind(recipe))["catch"](printError);
     };
     return CvsProcessor;
 }());
-var fileToOpen = './german-separable-prefixes.csv';
+var fileToOpen = './word-example.csv';
 var pathToSave = './prefixes.csv';
 var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media');
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe);

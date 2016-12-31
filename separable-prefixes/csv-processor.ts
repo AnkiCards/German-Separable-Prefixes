@@ -21,8 +21,7 @@ interface Recipe {
 }
 
 interface Line {
-    prefix: string,
-    translation: string,
+    example: string,
     word: string
 }
 
@@ -75,11 +74,11 @@ class AnkiInfo implements Recipe {
     }
 
     getLineString(line: Line, soundPath: string, imagesPath: Array<string>): string {
-        const {prefix, translation, word} = line
+        const {example, word} = line
             , formatAudioString = this.formatAudioString.bind(this)
             , formatImagesString = this.formatImagesString.bind(this)
 
-        return `"${prefix}", "${word}", "${translation}", ${formatAudioString(soundPath)}, ${formatImagesString(imagesPath)}`
+        return `"${word}", "${example}", ${formatAudioString(soundPath)}, ${formatImagesString(imagesPath)}\r\n`
     }
 
     processLine(line: Line): Promise<string> {
@@ -94,17 +93,20 @@ class AnkiInfo implements Recipe {
 
     }
 
-    processAllLines(lines: Array<Line>): Array<Promise<string>> {
-        return lines.map(line => {
-            return this.processLine(line)
+    writeNewLine(line :string) :void{
+        fs.appendFile('./message.csv', line); 
+    }
+
+    processAllLines(lines: Array<Line>): void {
+        const {writeNewLine} = this
+
+        return lines.forEach(line => {
+             this.processLine(line).then(writeNewLine)
         }, this)
     }
 
-    getNewCvs(oldCsvLines: Array<Line>): Promise<string> {
-        const asyncTasks = this.processAllLines(oldCsvLines)
-        return Promise.all(asyncTasks).then(lines => {
-            return lines.join('\r\n')
-        })
+    getNewCvs(oldCsvLines: Array<Line>): void {
+       this.processAllLines(oldCsvLines)
     }
 
     followRecipe(csvLines: Array<Line>) {
@@ -159,14 +161,13 @@ class CvsProcessor {
 
         this.openFile()
             .then(recipe.followRecipe.bind(recipe))
-            .then(saveContent.bind(this))
             .catch(printError)
     }
 
 }
 
 
-var fileToOpen = './german-separable-prefixes.csv'
+var fileToOpen = './word-example.csv'
 var pathToSave = './prefixes.csv'
 var recipe = new AnkiInfo('/home/hellon/Dropbox/Anki/hellon/collection.media')
 var processor = new CvsProcessor(fileToOpen, pathToSave, recipe)
